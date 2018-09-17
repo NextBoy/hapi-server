@@ -1,13 +1,38 @@
+const Joi = require('joi')
+const GROUP = 'example'
 module.exports = [
     {
-        method: 'GET',
-        path: '/hapi/example',
-        handler: (req, res) => {
+        method: 'POST',
+        path: `/${GROUP}/{orderId}/pay`,
+        handler: async (req, res) => {
             res({code: 200})
         },
         config: {
-            tags: ['api', 'tests'],
-            description: '测试hello-hapi'
+            tags: ['api', GROUP],
+            description: '支付订单',
+            validate: {
+                // url路径参数
+                params: {
+                    orderId: Joi.string().min(3).required().error(new Error('订单号错误'))
+                },
+                // 适用于 POST 接口的 payload（request body）验证
+                payload: {
+                    userId: Joi.string().required().error(new Error('userId不能为空'))
+                },
+                // 适用于 GET 接口的 query（URL 路径参数）
+                query: {}
+            }
+        }
+    },
+    {
+        method: 'GET',
+        path: `/${GROUP}/{orderId}/delete`,
+        handler: async (req, res) => {
+            res({code: 200})
+        },
+        config: {
+            tags: ['api', GROUP],
+            description: '取消订单'
         }
     }
 ]

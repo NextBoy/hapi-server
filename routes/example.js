@@ -25,14 +25,27 @@ module.exports = [
         }
     },
     {
-        method: 'GET',
+        method: 'POST',
         path: `/${GROUP}/{orderId}/delete`,
         handler: async (req, res) => {
             res({code: 200})
         },
         config: {
             tags: ['api', GROUP],
-            description: '取消订单'
+            description: '取消订单',
+            validate: {
+                payload: {
+                    users: Joi.array().items(
+                        Joi.object().keys({
+                            name: Joi.string().required().description('名字'),
+                            age: Joi.default(18),
+                            more: Joi.object({
+                                age: Joi.number().min(18).required()
+                            }).unknown()
+                        })
+                    )
+                }
+            }
         }
     }
 ]

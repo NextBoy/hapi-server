@@ -1,4 +1,8 @@
-require('env2')('./env/.env.dev')
+if (process.env.NODE_ENV === 'development') {
+    require('env2')('./env/.env.dev')
+} else {
+    require('env2')('./env/.env.production')
+}
 const Hapi = require('hapi')
 const connectionConfig = require('./config')
 const exampleRoute = require('./routes/example')

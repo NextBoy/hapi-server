@@ -1,11 +1,13 @@
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV.trim() === 'development') {
     require('env2')('./env/.env.dev')
 } else {
     require('env2')('./env/.env.production')
 }
 const Hapi = require('hapi')
 const connectionConfig = require('./config')
+// 路由api接口
 const exampleRoute = require('./routes/example')
+const articlesRoute = require('./routes/articles')
 // 引入自定义的 hapi-swagger 插件配置
 const pluginHapiSwagger = require('./plugins/hapi-swagger')
 const server = new Hapi.Server()
@@ -23,7 +25,8 @@ const init = async() => {
     ])
     server.route([
         // example route
-        ...exampleRoute
+        ...exampleRoute,
+        ...articlesRoute
     ])
     // 启动服务
     await server.start()

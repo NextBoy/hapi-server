@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "hapi": "^16.6.3",
+    "hapi-pagination": "^1.22.0",
     "hapi-swagger": "^7.10.0",
     "inert": "^4.2.1",
     "joi": "^13.6.0",
@@ -12,10 +13,10 @@
     "vision": "^4.1.1"
   },
   "scripts": {
-    "dev-win": "set NODE_ENV=development  && nodemon app.js",
-    "dev-mac": "export NODE_ENV=development  && nodemon app.js",
-    "production-win": "set NODE_ENV=production  && nodemon app.js",
-    "production-mac": "export NODE_ENV=production  && nodemon app.js"
+    "dev-win": "set NODE_ENV=development&& nodemon app.js",
+    "dev-mac": "export NODE_ENV=development&& nodemon app.js",
+    "production-win": "set NODE_ENV=production&& nodemon app.js",
+    "production-mac": "export NODE_ENV=production&& nodemon app.js"
   },
   "devDependencies": {
     "env2": "^2.2.2",

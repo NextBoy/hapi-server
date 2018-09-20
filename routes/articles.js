@@ -1,6 +1,7 @@
 const Joi = require('joi')
 const GROUP = 'articles'
 const models = require('../models')
+const { authorizationValidate } = require('../utils/routes-helper')
 module.exports = [
     {
         method: 'POST',
@@ -20,6 +21,7 @@ module.exports = [
         config: {
             tags: ['api', GROUP],
             description: '获取订单列表',
+            auth: false,
             validate: {
                 payload: Joi.object({
                     pageSize: Joi.number().default(10).description('分页大小').error(new Error('分页大小必须为数字')),
@@ -33,6 +35,7 @@ module.exports = [
         path: `/${GROUP}/{articleId}`,
         handler: async (req, res) => {
             try {
+                console.log(req.auth.credentials)
                 const result = await models.articles.find({
                     where: {
                         id: req.params.articleId
@@ -49,7 +52,8 @@ module.exports = [
             validate: {
                 params: {
                     articleId: Joi.string().required().description('文章Id').error(new Error('文章ID不能为空'))
-                }
+                },
+                ...authorizationValidate
             }
         }
     }

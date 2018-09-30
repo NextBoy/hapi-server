@@ -34,6 +34,7 @@ module.exports = [
         method: 'GET',
         path: `/${GROUP}/{articleId}`,
         handler: async (req, res) => {
+            console.log(req)
             try {
                 console.log(req.auth.credentials)
                 const result = await models.articles.find({

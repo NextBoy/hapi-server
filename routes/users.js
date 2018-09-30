@@ -95,6 +95,7 @@ module.exports = [
         handler: async (req, res) => {
             try {
                 const { code } = req.payload
+                console.log({code})
                 // 通过客户端发送的code去微信服务点获取session_key, openid
                 const response = await axios({
                     url: 'https://api.weixin.qq.com/sns/jscode2session',
@@ -106,17 +107,29 @@ module.exports = [
                         grant_type: 'authorization_code',
                     }
                 })
+                console.log(response)
                 const { session_key, openid } = response.data
                 codeStore[code] = { session_key, openid }
+                if (!openid) {
+                    res({statusCode: 200, status: false, msg: '参数校验错误'})
+                    return 0
+                }
                 // 基于 openid 查找或创建一个用户
-               const user = await models.wxUsers.findOrCreate({
-                    where: { open_id: openid },
+               const user = await models.wxUsers.findCreateFind({
+                   where: { open_id: openid },
+                   defaults: {
+                       session_key
+                   }
                 });
+                const isNewUser = user[1]
+                if (!isNewUser) {
+                    models.wxUsers.update({session_key}, {where: { open_id: openid }})
+                }
                 let result = generateAuthInfo({userId: user[0].id}, 60, 60 * 3)
                 if (result) {
-                    result.isNewUser = user[1]
+                    result.isNewUser = isNewUser
                 }
-                res(result)
+                res({statusCode: 200, status: true, info: result})
             } catch (err){
                 console.log('some err')
                 console.error(err)
@@ -139,12 +152,22 @@ module.exports = [
         path: `/${GROUP}/saveWxUserInfo`,
         handler: async (req, res) => {
             try {
-                const { code, encryptedData, iv } = req.payload
-                const { session_key, openid } = codeStore[code]
+                const { encryptedData, iv } = req.payload
+                const userId = req.auth.credentials.userId
+                const userInfo = await models.wxUsers.find({where: { id: userId }})
+                console.log({userInfo})
+                const session_key = userInfo.dataValues.session_key
                 const pc = new WXBizDataCrypt(config.AppID, session_key)
                 const data = pc.decryptData(encryptedData , iv)
-                console.log(data)
-                delete codeStore[code]
+                // 更新 user 表中的用户的资料信息
+                await models.wxUsers.update({
+                    nick_name: data.nickName,
+                    gender: data.gender,
+                    avatar_url: data.avatarUrl,
+                    open_id: data.openId
+                }, {
+                    where: { open_id: data.openId },
+                })
                 res({statusCode: 200, status: true})
             } catch (err){
                 console.error(err)
@@ -152,11 +175,9 @@ module.exports = [
         },
         config: {
             tags: ['api', GROUP],
-            description: '微信身份验证接口',
-            auth: false,
+            description: '微信用户信息存储接口',
             validate: {
                 payload: {
-                    code: Joi.string().required().error(new Error('code 不能为空')),
                     iv: Joi.string().required().error(new Error('iv 不能为空')),
                     encryptedData: Joi.string().required().error(new Error('encryptedData 不能为空'))
                 }
